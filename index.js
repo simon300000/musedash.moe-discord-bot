@@ -15,7 +15,8 @@ client.on('message', async ({ content, channel }) => {
   if (content.startsWith('!moe')) {
     const [menu, ...items] = content.replace('!moe', '').split(' ').filter(Boolean)
     if (!menu || menu === 'help') {
-      send('Type `!moe search name` to search for player')
+      send(`Type \`!moe search name\` to search for player
+Type \`!moe player id\` to lookup player's info`)
     }
     if (menu === 'search') {
       const query = items.join(' ')
@@ -38,9 +39,9 @@ client.on('message', async ({ content, channel }) => {
         send(result.join('\n'))
       }
     }
-    if (menu === 'info') {
+    if (menu === 'player') {
       if (!items.length) {
-        send('Type `!moe info name` to lookup player\'s info')
+        send('Type `!moe player id` to lookup player\'s info')
       } else {
         const bodies = await Promise.all([...new Set(items)].map(id => player(id).catch(() => undefined)))
         const players = bodies.filter(Boolean)
