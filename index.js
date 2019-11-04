@@ -3,6 +3,8 @@ const Discord = require('discord.js')
 const client = new Discord.Client()
 const got = require('got')
 
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+
 const search = async query => (await got(new URL(`https://api.musedash.moe/search/${query}`), { json: true })).body
 const player = async id => (await got(new URL(`https://api.musedash.moe/player/${id}`), { json: true })).body
 
@@ -11,7 +13,11 @@ client.on('ready', () => {
 })
 
 client.on('message', async ({ content, channel }) => {
-  const send = (...args) => channel.send(...args)
+  const send = async (...args) => {
+    const message = await channel.send(...args)
+    await wait(1000 * 90)
+    message.delete()
+  }
   if (content.startsWith('!moe')) {
     const [menu, ...items] = content.replace('!moe', '').split(' ').filter(Boolean)
     if (!menu || menu === 'help') {
