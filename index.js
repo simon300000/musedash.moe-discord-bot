@@ -3,8 +3,8 @@ const Discord = require('discord.js')
 const client = new Discord.Client()
 const got = require('got')
 
-const search = async query => (await got(`https://api.musedash.moe/search/${query}`, { json: true })).body
-const player = async id => (await got(`https://api.musedash.moe/player/${id}`, { json: true })).body
+const search = async query => (await got(new URL(`https://api.musedash.moe/search/${query}`), { json: true })).body
+const player = async id => (await got(new URL(`https://api.musedash.moe/player/${id}`), { json: true })).body
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
