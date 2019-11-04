@@ -22,7 +22,7 @@ client.on('message', async ({ content, channel }) => {
     const [menu, ...items] = content.replace('!moe', '').split(' ').filter(Boolean)
     if (!menu || menu === 'help') {
       send(`Type \`!moe search name\` to search for player
-Type \`!moe player id\` to lookup player's info`)
+Type \`!moe player id/name\` to lookup player's info`)
     }
     if (menu === 'search') {
       const query = items.join(' ')
@@ -47,8 +47,15 @@ Type \`!moe player id\` to lookup player's info`)
     }
     if (menu === 'player') {
       if (!items.length) {
-        send('Type `!moe player id` to lookup player\'s info')
+        send('Type `!moe player id/name` to lookup player\'s info')
       } else {
+        if (items[0].length < 32) {
+          const [result] = await search(items.join(' '))
+          items.length = 0
+          if (result) {
+            items[0] = result[1]
+          }
+        }
         const bodies = await Promise.all([...new Set(items)].map(id => player(id).catch(() => undefined)))
         const players = bodies.filter(Boolean)
         const result = players.map(({ plays, user: { nickname, user_id: id } }) => {
