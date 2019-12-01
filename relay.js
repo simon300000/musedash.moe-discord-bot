@@ -39,14 +39,17 @@ bot.on('socket.error', e => console.error('ERROR', e))
  */
 
 client.on('message', async message => {
-  const { channel } = message
-  if (discordQQMap.has(channel.id)) {
-    const qq = discordQQMap.get(channel.id)
-    const { member, attachments, content } = message
+  const { author } = message
+  if (author.id !== client.user.id) {
+    const { channel } = message
+    if (discordQQMap.has(channel.id)) {
+      const qq = discordQQMap.get(channel.id)
+      const { member, attachments, content } = message
 
-    const attachment = [...attachments.values()].map(({ url }) => url)
-    const msg = [`${member.displayName}: ${content}`, ...attachment].join('\n')
-    bot('send_group_msg', { group_id: qq, message: [new CQText(msg)] })
+      const attachment = [...attachments.values()].map(({ url }) => url)
+      const msg = [`${member.displayName}: ${content}`, ...attachment].join('\n')
+      bot('send_group_msg', { group_id: qq, message: [new CQText(msg)] })
+    }
   }
 })
 
