@@ -1,8 +1,10 @@
 require('dotenv').config()
 
-const { CQWebSocket, CQText } = require('cq-websocket')
+const { CQWebSocket, CQText, CQImage } = require('cq-websocket')
 
 const Discord = require('discord.js')
+
+const got = require('got')
 
 const wsConfig = {
   host: '127.0.0.1',
@@ -49,6 +51,47 @@ client.on('message', async message => {
       const attachment = [...attachments.values()].map(({ url }) => url)
       const msg = [`${member.displayName}: ${content}`, ...attachment].join('\n')
       bot('send_group_msg', { group_id: qq, message: [new CQText(msg)] })
+    }
+  }
+})
+
+/**
+ *
+ *
+ */
+
+bot.on('message.group', (_, ctx, tags) => {
+  if (qqDiscordMap.has(ctx.group_id)) {
+    const discord = qqDiscordMap.get(ctx.group_id)
+    if (client.channels.has(discord)) {
+      const channel = client.channels.get(discord)
+
+      const { sender } = ctx
+
+      const images = tags
+        .filter(tag => tag instanceof CQImage)
+        .map(({ file, url }) => new Discord.Attachment(got.stream(url), file))
+      const text = ctx.raw_message
+        .split('')
+        .reduce(([last, ...rest], char) => {
+          const [cq] = last
+          const current = [cq, char]
+          if (char === '[') {
+            current[0] = true
+          } else if (char === ']') {
+            current[0] = false
+          }
+          return [current, last, ...rest]
+        }, [
+          [false, '']
+        ])
+        .filter(([cq]) => !cq)
+        .map(([_cq, char]) => char)
+        .filter(char => !['[', ']'].includes(char))
+        .reverse()
+        .join('')
+
+      channel.send(`${sender.nickname}: ${text}`, { files: images })
     }
   }
 })
