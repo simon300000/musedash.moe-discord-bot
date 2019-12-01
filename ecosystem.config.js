@@ -5,5 +5,11 @@ module.exports = {
     instances: 1,
     autorestart: true,
     watch: false
+  }, {
+    name: 'MuseDash QQ-Discord relay',
+    script: 'relay.js',
+    instances: 1,
+    autorestart: true,
+    watch: false
   }]
 }
