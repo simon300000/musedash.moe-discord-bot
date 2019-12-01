@@ -19,6 +19,8 @@ const qqDiscordMap = new Map()
  *
  */
 
+discordQQMap.set('650819506523865098', 795649800)
+
 /**
  *
  *
