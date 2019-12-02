@@ -94,7 +94,7 @@ bot.on('message.group', (_, ctx, tags) => {
         .reverse()
         .join('')
 
-      channel.send(`\`${sender.nickname}\`: ${text}`, { files: images })
+      channel.send(`\`${sender.nickname}\` ${text}`, { files: images })
     }
   }
 })
