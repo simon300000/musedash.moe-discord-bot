@@ -19,6 +19,7 @@ const qqDiscordMap = new Map()
  *
  */
 
+/* #2 */
 discordQQMap.set('650819506523865098', 795649800)
 
 /**
@@ -51,7 +52,7 @@ client.on('message', async message => {
       const { member, attachments, content } = message
 
       const attachment = [...attachments.values()].map(({ url }) => url)
-      const msg = [`${member.displayName}: ${content}`, ...attachment].join('\n')
+      const msg = [`[${member.displayName}]: ${content}`, ...attachment].join('\n')
       bot('send_group_msg', { group_id: qq, message: [new CQText(msg)] })
     }
   }
@@ -93,7 +94,7 @@ bot.on('message.group', (_, ctx, tags) => {
         .reverse()
         .join('')
 
-      channel.send(`${sender.nickname}: ${text}`, { files: images })
+      channel.send(`\`${sender.nickname}\`: ${text}`, { files: images })
     }
   }
 })
