@@ -23,13 +23,13 @@ const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id }) 
   {
     const nicknameLength = nickname.length
     const spaceLength = boxLength - 4 - nicknameLength
-    lines[0] = `-${' '.repeat(Math.floor(spaceLength / 2))}[${nickname}]${' '.repeat(Math.ceil(spaceLength / 2))}-`
+    lines[0] = `-${' '.repeat(Math.max(0, Math.floor(spaceLength / 2)))}[${nickname}]${' '.repeat(Math.max(0, Math.ceil(spaceLength / 2)))}-`
   }
 
   {
     const idLength = id.length
     const lineLength = boxLength - 2 - idLength
-    lines[1] = `${'+'.repeat(Math.floor(lineLength / 2))}[${id}]${'+'.repeat(Math.ceil(lineLength / 2))}`
+    lines[1] = `${'+'.repeat(Math.max(0, Math.floor(lineLength / 2)))}[${id}]${'+'.repeat(Math.max(0, Math.ceil(lineLength / 2)))}`
   }
 
   {
@@ -41,7 +41,7 @@ const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id }) 
 
     const longestTitleLength = Math.max(...contents.map(([title]) => title.length))
 
-    lines.push(...contents.map(([title, content]) => `+ ${title}: ${' '.repeat(longestTitleLength - title.length + 2)}${content}`))
+    lines.push(...contents.map(([title, content]) => `+ ${title}: ${' '.repeat(Math.max(0, longestTitleLength - title.length + 2))}${content}`))
   }
 
   {
@@ -54,11 +54,11 @@ const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id }) 
     {
       const title = `#${index} => Highest rank/score`
       const titleSpaceLength = boxLength - title.length - 2
-      lines.push(`-${' '.repeat(Math.ceil(titleSpaceLength / 2))}${title}${' '.repeat(Math.floor(titleSpaceLength / 2))}-`)
+      lines.push(`-${' '.repeat(Math.max(0, Math.ceil(titleSpaceLength / 2)))}${title}${' '.repeat(Math.max(0, Math.floor(titleSpaceLength / 2)))}-`)
 
       const nameAuthor = `!「${name}」by ${author}`
       const nameAuthorSpaceLength = boxLength - nameAuthor.length
-      lines.push(`${nameAuthor}${' '.repeat(nameAuthorSpaceLength)}`)
+      lines.push(`${nameAuthor}${' '.repeat(Math.max(0, nameAuthorSpaceLength))}`)
     }
 
     contents.push([`#${index} ${platform}`, `Lv.${difficulty[difficultyNum]} - ${levelDesigner}`])
