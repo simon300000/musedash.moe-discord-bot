@@ -86,7 +86,7 @@ client.on('message', async message => {
       const msg = [`[${member.displayName}]: ${content}`, ...attachment].join('\n')
       saveAt(member.displayName, member.id)
 
-      let ats = 123333
+      let ats = 0
       await bot('send_group_msg', {
         group_id: qq,
         message: findAt(msg, id => {
