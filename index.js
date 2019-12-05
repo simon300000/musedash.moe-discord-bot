@@ -78,11 +78,12 @@ const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id }) 
   }), '```', `https://musedash.moe/player/${id}`].join('\n')
 }
 
-client.on('message', async ({ content, channel }) => {
-  const send = async (...args) => {
-    const message = await channel.send(...args)
+client.on('message', async message => {
+  const { content } = message
+  const send = async string => {
+    const reply = await message.reply(`\n${string}`)
     await wait(1000 * 90)
-    message.delete()
+    reply.delete()
   }
   if (content.startsWith('!moe')) {
     const [menu, ...items] = content.replace('!moe', '').split(' ').filter(Boolean)
