@@ -29,6 +29,8 @@ discordQQMap.set('650819506523865098', 795649800)
 
 discordQQMap.forEach((channel, id) => qqDiscordMap.set(channel, id))
 
+const numEmoji = ['♾', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+
 const atTable = {}
 
 const atFinder = (currentID, targetID) => {
@@ -83,7 +85,20 @@ client.on('message', async message => {
       const attachment = [...attachments.values()].map(({ url }) => url)
       const msg = [`[${member.displayName}]: ${content}`, ...attachment].join('\n')
       saveAt(member.displayName, member.id)
-      bot('send_group_msg', { group_id: qq, message: findAt(msg, id => new CQAt(id), text => new CQText(text)) })
+
+      let ats = 123333
+      await bot('send_group_msg', {
+        group_id: qq,
+        message: findAt(msg, id => {
+          ats++
+          return new CQAt(id)
+        }, text => new CQText(text))
+      })
+
+      message.react('✔')
+      if (ats) {
+        message.react(numEmoji[ats] || numEmoji[0])
+      }
     }
   }
 })
