@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-const { CQWebSocket, CQText, CQImage } = require('cq-websocket')
+const { CQWebSocket, CQText, CQImage, CQAt } = require('cq-websocket')
 
 const Discord = require('discord.js')
 
@@ -29,6 +29,34 @@ discordQQMap.set('650819506523865098', 795649800)
 
 discordQQMap.forEach((channel, id) => qqDiscordMap.set(channel, id))
 
+const atTable = {}
+
+const atFinder = (currentID, targetID) => {
+  if (!atTable[currentID]) {
+    atTable[currentID] = {}
+  }
+  if (!atTable[targetID]) {
+    atTable[targetID] = {}
+  }
+  const tagetAts = Object.entries(atTable[targetID])
+  return [(name, id) => { atTable[currentID][name] = id }, (text, replacer, textReplacer = text => text) => text
+    .split('@')
+    .flatMap((txt, index) => {
+      if (index) {
+        const atTarget = tagetAts.find(([name]) => txt.startsWith(name))
+        if (atTarget) {
+          const [name, id] = atTarget
+          return [replacer(id), textReplacer(txt.replace(name, ''))]
+        } else {
+          return textReplacer(`@${txt}`)
+        }
+      } else {
+        return textReplacer(txt)
+      }
+    })
+  ]
+}
+
 const client = new Discord.Client()
 client.on('ready', () => console.log(`Logged in as ${client.user.tag}`))
 
@@ -49,11 +77,13 @@ client.on('message', async message => {
     const { channel } = message
     if (discordQQMap.has(channel.id)) {
       const qq = discordQQMap.get(channel.id)
+      const [saveAt, findAt] = atFinder(channel.id, qq)
       const { member, attachments, content } = message
 
       const attachment = [...attachments.values()].map(({ url }) => url)
       const msg = [`[${member.displayName}]: ${content}`, ...attachment].join('\n')
-      bot('send_group_msg', { group_id: qq, message: [new CQText(msg)] })
+      saveAt(member.displayName, member.id)
+      bot('send_group_msg', { group_id: qq, message: findAt(msg, id => new CQAt(id), text => new CQText(text)) })
     }
   }
 })
@@ -68,7 +98,7 @@ bot.on('message.group', (_, ctx, tags) => {
     const discord = qqDiscordMap.get(ctx.group_id)
     if (client.channels.has(discord)) {
       const channel = client.channels.get(discord)
-
+      const [save, findAt] = atFinder(ctx.group_id, discord)
       const { sender } = ctx
 
       const images = tags
@@ -94,7 +124,9 @@ bot.on('message.group', (_, ctx, tags) => {
         .reverse()
         .join('')
 
-      channel.send(`\`${sender.nickname}\` ${text}`, { files: images })
+      save(sender.nickname, sender.user_id)
+
+      channel.send(findAt(`\`${sender.nickname}\` ${text}`, id => `<@${id}>`).join(''), { files: images })
     }
   }
 })
