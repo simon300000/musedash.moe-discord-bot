@@ -29,6 +29,8 @@ discordQQMap.set('650819506523865098', 795649800)
 
 discordQQMap.forEach((channel, id) => qqDiscordMap.set(channel, id))
 
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+
 const numEmoji = ['♾', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
 
 const atTable = {}
@@ -76,6 +78,11 @@ bot.on('socket.error', e => console.error('ERROR', e))
 client.on('message', async message => {
   const { author } = message
   if (author.id !== client.user.id) {
+    const react = async emoji => {
+      const reaction = await message.react(emoji)
+      await wait(1000 * 16)
+      reaction.remove()
+    }
     const { channel } = message
     if (discordQQMap.has(channel.id)) {
       const qq = discordQQMap.get(channel.id)
@@ -95,9 +102,9 @@ client.on('message', async message => {
         }, text => new CQText(text))
       })
 
-      message.react('✔')
+      react('✔')
       if (ats) {
-        message.react(numEmoji[ats] || numEmoji[0])
+        react(numEmoji[ats] || numEmoji[0])
       }
     }
   }
