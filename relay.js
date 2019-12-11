@@ -149,9 +149,10 @@ bot.on('message.group', (_, ctx, tags) => {
         .reverse()
         .join('')
 
-      save(sender.nickname, sender.user_id)
+      const name = sender.card || sender.nickname
 
-      channel.send(findAt(`\`${sender.nickname}\` ${text}`, id => `<@${id}>`).join(''), { files: images })
+      save(name, sender.user_id)
+      channel.send(findAt(`\`${name}\` ${text}`, id => `<@${id}>`).join(''), { files: images })
     }
   }
 })
