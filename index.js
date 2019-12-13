@@ -46,8 +46,9 @@ const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id }) 
 
   {
     const { levelDesigner: levelDesigners, difficulty, English: { name, author } } = await music(bestPlay.uid)
-    const { score, acc, i: index, difficulty: difficultyNum, platform } = bestPlay
+    const { score, acc, i: rawIndex, difficulty: difficultyNum, platform } = bestPlay
     const levelDesigner = levelDesigners[difficultyNum] || levelDesigners[0]
+    const index = rawIndex + 1
 
     const contents = []
 
