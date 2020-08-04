@@ -118,7 +118,7 @@ client.on('message', async message => {
  *
  */
 
-bot.on('message.group', (_, ctx, tags) => {
+bot.on('message.group', async (_, ctx, tags) => {
   if (qqDiscordMap.has(ctx.group_id)) {
     const discord = qqDiscordMap.get(ctx.group_id)
     if (client.channels.has(discord)) {
@@ -126,9 +126,13 @@ bot.on('message.group', (_, ctx, tags) => {
       const [save, findAt] = atFinder(ctx.group_id, discord)
       const { sender } = ctx
 
-      const images = tags
+      const images = await Promise.all(tags
         .filter(tag => tag instanceof CQImage)
-        .map(({ url }) => new Discord.Attachment(got.stream(url), url.split('/').reverse()[0]))
+        .map(({ file }) => bot('get_image', { file }))
+        .map(async p => {
+          const { filename, url } = await p
+          return new Discord.Attachment(got.stream(url), filename)
+        }))
       const text = ctx.raw_message
         .split('')
         .reduce(([last, ...rest], char) => {
