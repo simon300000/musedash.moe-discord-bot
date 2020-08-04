@@ -128,7 +128,7 @@ bot.on('message.group', (_, ctx, tags) => {
 
       const images = tags
         .filter(tag => tag instanceof CQImage)
-        .map(({ url }) => new Discord.Attachment(got.stream(url)))
+        .map(({ url }) => new Discord.Attachment(got.stream(url), url.split('/').reverse()[0]))
       const text = ctx.raw_message
         .split('')
         .reduce(([last, ...rest], char) => {
