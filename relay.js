@@ -8,7 +8,7 @@ const got = require('got')
 
 const wsConfig = {
   host: '127.0.0.1',
-  port: 6700
+  port: 6701
 }
 
 const discordQQMap = new Map()
