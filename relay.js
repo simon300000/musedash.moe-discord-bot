@@ -92,17 +92,17 @@ client.on('message', async message => {
       const [saveAt, findAt] = atFinder(channel.id, qq)
       const { member, attachments, content } = message
 
-      const attachment = [...attachments.values()].map(({ url }) => url)
-      const msg = [`[${member.displayName}]: ${content}`, ...attachment].join('\n')
+      const attachment = [...attachments.values()].map(({ url }) => new CQImage(url))
+      const msg = `[${member.displayName}]: ${content}`
       saveAt(member.displayName, member.id)
 
       let ats = 0
       await bot('send_group_msg', {
         group_id: qq,
-        message: findAt(msg, id => {
+        message: [...findAt(msg, id => {
           ats++
           return new CQAt(id)
-        }, text => new CQText(text))
+        }, text => new CQText(text)), ...attachment]
       })
 
       react('✔')
