@@ -130,6 +130,7 @@ bot.on('message.group', async (_, ctx, tags) => {
         .filter(tag => tag instanceof CQImage)
         .map(({ file }) => bot('get_image', { file }))
         .map(async p => {
+          console.log(await p)
           const { filename, url } = await p
           return new Discord.Attachment(got.stream(url), filename)
         }))
