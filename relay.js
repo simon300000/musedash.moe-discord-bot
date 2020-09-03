@@ -121,8 +121,8 @@ client.on('message', async message => {
 bot.on('message.group', async (_, ctx, tags) => {
   if (qqDiscordMap.has(ctx.group_id)) {
     const discord = qqDiscordMap.get(ctx.group_id)
-    if (client.channels.has(discord)) {
-      const channel = client.channels.get(discord)
+    if (client.channels.cache.has(discord)) {
+      const channel = client.channels.cache.get(discord)
       const [save, findAt] = atFinder(ctx.group_id, discord)
       const { sender } = ctx
 
@@ -156,7 +156,7 @@ bot.on('message.group', async (_, ctx, tags) => {
       const name = sender.card || sender.nickname
 
       save(name, sender.user_id)
-      channel.send(findAt(`\`${name}\` ${text}`, id => `<@${id}>`).join(''), { files: images })
+      channel.send(String(findAt(`\`${name}\` ${text}`, id => `<@${id}>`).join('')), { files: images })
     }
   }
 })
