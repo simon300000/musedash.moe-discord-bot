@@ -84,7 +84,7 @@ client.on('message', async message => {
     const react = async emoji => {
       const reaction = await message.react(emoji)
       await wait(1000 * 16)
-      reaction.remove()
+      reaction.users.remove()
     }
     const { channel } = message
     if (discordQQMap.has(channel.id)) {
