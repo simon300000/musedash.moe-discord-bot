@@ -131,7 +131,7 @@ bot.on('message.group', async (_, ctx, tags) => {
         .map(({ file }) => bot('get_image', { file }))
         .map(async p => {
           const { data: { filename, url } } = await p
-          return new Discord.Attachment(got.stream(url), filename)
+          return new Discord.MessageAttachment(got.stream(url), filename)
         }))
       const text = ctx.raw_message
         .split('')
