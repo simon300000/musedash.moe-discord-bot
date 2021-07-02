@@ -83,8 +83,6 @@ client.on('message', async message => {
   const { content } = message
   const send = async string => {
     const reply = await message.reply(`\n${string}`)
-    await wait(1000 * 90)
-    reply.delete()
   }
   if (content.startsWith('!moe')) {
     const [menu, ...items] = content.replace('!moe', '').split(' ').filter(Boolean)
