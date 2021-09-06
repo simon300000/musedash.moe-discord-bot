@@ -132,7 +132,11 @@ Type \`!moe player id/name\` to lookup player's info`)
             .sort(({ i: a }, { i: b }) => a - b)[0]
           return { nickname, bestPlay, perfects, plays, avg, id }
         })
-        send((await Promise.all(result.map(makeDiffResult))).join('\n'))
+        if (!result.length) {
+          send('Can not find this user')
+        } else {
+          send((await Promise.all(result.map(makeDiffResult))).join('\n'))
+        }
       }
     }
   }
