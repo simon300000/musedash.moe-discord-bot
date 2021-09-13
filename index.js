@@ -17,19 +17,26 @@ client.on('ready', () => {
 
 const boxLength = 40
 
-const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id }) => {
+const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id, rl }) => {
   const lines = []
 
   {
     const nicknameLength = nickname.length
     const spaceLength = boxLength - 4 - nicknameLength
-    lines[0] = `-${' '.repeat(Math.max(0, Math.floor(spaceLength / 2)))}[${nickname}]${' '.repeat(Math.max(0, Math.ceil(spaceLength / 2)))}-`
+    lines.push(`-${' '.repeat(Math.max(0, Math.floor(spaceLength / 2)))}[${nickname}]${' '.repeat(Math.max(0, Math.ceil(spaceLength / 2)))}-`)
+  }
+
+  if (rl !== undefined) {
+    const rlRound = Math.round(rl * 1000) / 1000
+    const fill = `RL: ${rlRound}`
+    const spaceLength = boxLength - 2 - fill.length
+    lines.push(`-${' '.repeat(Math.max(0, Math.floor(spaceLength / 2)))}${fill}${' '.repeat(Math.max(0, Math.ceil(spaceLength / 2)))}-`)
   }
 
   {
     const idLength = id.length
     const lineLength = boxLength - 2 - idLength
-    lines[1] = `${'+'.repeat(Math.max(0, Math.floor(lineLength / 2)))}[${id}]${'+'.repeat(Math.max(0, Math.ceil(lineLength / 2)))}`
+    lines.push(`${'+'.repeat(Math.max(0, Math.floor(lineLength / 2)))}[${id}]${'+'.repeat(Math.max(0, Math.ceil(lineLength / 2)))}`)
   }
 
   {
@@ -124,13 +131,13 @@ Type \`!moe player id/name\` to lookup player's info`)
         }
         const bodies = await Promise.all([...new Set(items)].map(id => player(id).catch(() => undefined)))
         const players = bodies.filter(Boolean)
-        const result = players.map(({ plays, user: { nickname, user_id: id } }) => {
+        const result = players.map(({ plays, user: { nickname, user_id: id }, rl }) => {
           const avg = Math.round(plays.map(({ acc }) => acc).reduce((a, b) => a + b) / plays.length * 100) / 100
           const perfects = plays.filter(({ acc }) => acc === 100).length
           const bestPlay = plays
             .sort(({ score: a }, { score: b }) => b - a)
             .sort(({ i: a }, { i: b }) => a - b)[0]
-          return { nickname, bestPlay, perfects, plays, avg, id }
+          return { nickname, bestPlay, perfects, plays, avg, id, rl }
         })
         if (!result.length) {
           send('Can not find this user')
