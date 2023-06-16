@@ -89,6 +89,59 @@ const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id, rl
   }), '```', `https://musedash.moe/player/${id}`].join('\n')
 }
 
+const searchCommand = async query => {
+  if (!query) {
+    return 'Type `!moe search name` to search for player'
+  } else {
+    const body = await search(query)
+    const length = body.length
+    const result = [`Search result of **${query}** (${body.length})`, ...Array(5)
+      .fill()
+      .map((_, i) => body[i])
+      .filter(Boolean)
+      .map(([name, id]) => `**${name}**, \`!moe player ${id}\``)
+    ]
+    if (length > 5) {
+      result.push(`> ${length - 5} more player are hidden`)
+    } else if (!length) {
+      result.push('> Caaaaan\'t find anyone')
+    }
+    return result.join('\n')
+  }
+}
+
+const playerCommand = async items => {
+  if (!items.length) {
+    return 'Type `!moe player id/name` to lookup player\'s info'
+  } else {
+    if (items[0].length < 32) {
+      const [result] = await search(items.join(' '))
+      items.length = 0
+      if (result) {
+        items[0] = result[1]
+      }
+    }
+    const bodies = await Promise.all([...new Set(items)].map(id => player(id).catch(() => undefined)))
+    const players = bodies.filter(Boolean)
+    const result = players.map(({ plays, user: { nickname, user_id: id }, rl }) => {
+      const avg = Math.round(plays.map(({ acc }) => acc).reduce((a, b) => a + b) / plays.length * 100) / 100
+      const perfects = plays.filter(({ acc }) => acc === 100).length
+      const bestPlay = plays
+        .sort(({ score: a }, { score: b }) => b - a)
+        .sort(({ i: a }, { i: b }) => a - b)[0]
+      return { nickname, bestPlay, perfects, plays, avg, id, rl }
+    })
+    if (!result.length) {
+      return 'Can not find this user'
+    } else {
+      return (await Promise.all(result.map(makeDiffResult))).join('\n')
+    }
+  }
+}
+
+const helpCommand = () => `Type \`!moe search name\` to search for player
+Type \`!moe player id/name\` to lookup player's info`
+
 client.on('messageCreate', async message => {
   const { content } = message
   const send = async string => {
@@ -97,57 +150,14 @@ client.on('messageCreate', async message => {
   if (content.startsWith('!moe')) {
     const [menu, ...items] = content.replace('!moe', '').split(' ').filter(Boolean)
     if (!menu || menu === 'help') {
-      send(`Type \`!moe search name\` to search for player
-Type \`!moe player id/name\` to lookup player's info`)
+      send(helpCommand())
     }
     if (menu === 'search') {
       const query = items.join(' ')
-      if (!query) {
-        send('Type `!moe search name` to search for player')
-      } else {
-        const body = await search(query)
-        const length = body.length
-        const result = [`Search result of **${query}** (${body.length})`, ...Array(5)
-          .fill()
-          .map((_, i) => body[i])
-          .filter(Boolean)
-          .map(([name, id]) => `**${name}**, \`!moe player ${id}\``)
-        ]
-        if (length > 5) {
-          result.push(`> ${length - 5} more player are hidden`)
-        } else if (!length) {
-          result.push('> Caaaaan\'t find anyone')
-        }
-        send(result.join('\n'))
-      }
+      send(await searchCommand(query))
     }
     if (menu === 'player') {
-      if (!items.length) {
-        send('Type `!moe player id/name` to lookup player\'s info')
-      } else {
-        if (items[0].length < 32) {
-          const [result] = await search(items.join(' '))
-          items.length = 0
-          if (result) {
-            items[0] = result[1]
-          }
-        }
-        const bodies = await Promise.all([...new Set(items)].map(id => player(id).catch(() => undefined)))
-        const players = bodies.filter(Boolean)
-        const result = players.map(({ plays, user: { nickname, user_id: id }, rl }) => {
-          const avg = Math.round(plays.map(({ acc }) => acc).reduce((a, b) => a + b) / plays.length * 100) / 100
-          const perfects = plays.filter(({ acc }) => acc === 100).length
-          const bestPlay = plays
-            .sort(({ score: a }, { score: b }) => b - a)
-            .sort(({ i: a }, { i: b }) => a - b)[0]
-          return { nickname, bestPlay, perfects, plays, avg, id, rl }
-        })
-        if (!result.length) {
-          send('Can not find this user')
-        } else {
-          send((await Promise.all(result.map(makeDiffResult))).join('\n'))
-        }
-      }
+      send(await playerCommand(items))
     }
   }
 })
