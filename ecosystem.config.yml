@@ -1,0 +1,6 @@
+apps:
+  - script: index.js
+    name: 'musedash.moe discord bot'
+    instances: 1
+    autorestart: true
+    watch: false

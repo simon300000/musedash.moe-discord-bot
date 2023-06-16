@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "dependencies": {
     "cq-websocket": "^2.0.2",
     "discord.js": "^12.3.1",
