@@ -1,15 +1,18 @@
-require('dotenv').config()
-const Discord = require('discord.js')
-const client = new Discord.Client()
-const got = require('got')
+import { config } from "dotenv"
+import { Client, GatewayIntentBits } from 'discord.js'
 
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+config()
 
-const search = async query => (await got(new URL(`https://api.musedash.moe/search/${query}`), { json: true })).body
-const player = async id => (await got(new URL(`https://api.musedash.moe/player/${id}`), { json: true })).body
-const music = async id => Object.values((await got('https://api.musedash.moe/albums', { json: true })).body)
-  .flatMap(({ music: w }) => Object.values(w))
-  .find(({ uid }) => uid === id)
+const search = query => fetch(`https://api.musedash.moe/search/${query}`).then(res => res.json())
+const player = id => fetch(`https://api.musedash.moe/player/${id}`).then(res => res.json())
+const music = id => fetch('https://api.musedash.moe/albums')
+  .then(res => res.json())
+  .then(res => Object
+    .values(res)
+    .flatMap(({ music: w }) => Object.values(w))
+    .find(({ uid }) => uid === id))
+
+const client = new Client({ intents: [GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.Guilds] })
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
@@ -86,7 +89,7 @@ const makeDiffResult = async ({ nickname, bestPlay, perfects, plays, avg, id, rl
   }), '```', `https://musedash.moe/player/${id}`].join('\n')
 }
 
-client.on('message', async message => {
+client.on('messageCreate', async message => {
   const { content } = message
   const send = async string => {
     const reply = await message.reply(`\n${string}`)
