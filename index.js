@@ -1,7 +1,13 @@
 import { config } from "dotenv"
 import { Client, GatewayIntentBits } from 'discord.js'
 
+import { Level } from 'level'
+
 config()
+
+const db = new Level('./db')
+
+const binding = db.sublevel('binding')
 
 const search = query => fetch(`https://api.musedash.moe/search/${query}`).then(res => res.json())
 const player = id => fetch(`https://api.musedash.moe/player/${id}`).then(res => res.json())
@@ -110,8 +116,14 @@ const searchCommand = async query => {
   }
 }
 
-const playerCommand = async items => {
+const playerCommand = async (items, id) => {
   if (!items.length) {
+    if (id) {
+      const currentBind = await binding.get(id).catch(() => undefined)
+      if (currentBind) {
+        return playerCommand([currentBind])
+      }
+    }
     return 'Type `!moe player id/name` to lookup player\'s info'
   } else {
     if (items[0].length < 32) {
@@ -139,11 +151,33 @@ const playerCommand = async items => {
   }
 }
 
+const bindCommand = async (id, discordId) => {
+  if (!id) {
+    const currentBind = await binding.get(discordId).catch(() => undefined)
+    if (currentBind) {
+      const { user: { user_id, nickname } } = await player(currentBind)
+      return `Hi ${nickname} (${user_id}),
+type \`!moe bind id\` to change`
+    } else {
+      return 'Type `!moe bind id` to bind your discord account with musedash.moe'
+    }
+  } else {
+    const { user: { user_id, nickname } } = await player(id)
+    if (user_id === '404') {
+      return 'User not found'
+    } else {
+      await binding.put(discordId, user_id)
+      return `hi, ${nickname}!, bind success!`
+    }
+  }
+}
+
 const helpCommand = () => `Type \`!moe search name\` to search for player
-Type \`!moe player id/name\` to lookup player's info`
+Type \`!moe player id/name\` to lookup player's info
+Type \`!moe bind id\` to bind your discord account with musedash.moe, so you can use \`!moe player\` without id`
 
 client.on('messageCreate', async message => {
-  const { content } = message
+  const { content, author: { id } } = message
   const send = async string => {
     const reply = await message.reply(`\n${string}`)
   }
@@ -157,7 +191,10 @@ client.on('messageCreate', async message => {
       send(await searchCommand(query))
     }
     if (menu === 'player') {
-      send(await playerCommand(items))
+      send(await playerCommand(items, id))
+    }
+    if (menu === 'bind') {
+      send(await bindCommand(items[0], id))
     }
   }
 })
