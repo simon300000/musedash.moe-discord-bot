@@ -1,5 +1,5 @@
 import { config } from "dotenv"
-import { Client, GatewayIntentBits } from 'discord.js'
+import { ApplicationCommandOptionType, Client, GatewayIntentBits } from 'discord.js'
 
 import { Level } from 'level'
 
@@ -176,11 +176,65 @@ const helpCommand = () => `Type \`!moe search name\` to search for player
 Type \`!moe player id/name\` to lookup player's info
 Type \`!moe bind id\` to bind your discord account with musedash.moe, so you can use \`!moe player\` without id`
 
+client.on('ready', async () => {
+  await client.application.commands.create({
+    name: 'moe',
+    description: 'musedash.moe bot',
+    options: [{
+      name: 'search',
+      description: 'search for player',
+      descriptionLocalizations: {
+        'zh-CN': '搜索玩家'
+      },
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [{
+        name: 'name',
+        description: 'player name',
+        descriptionLocalizations: {
+          'zh-CN': '昵称'
+        },
+        type: ApplicationCommandOptionType.String,
+        required: true
+      }]
+    }, {
+      name: 'player',
+      description: 'lookup player\'s info',
+      descriptionLocalizations: {
+        'zh-CN': '查看玩家信息'
+      },
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [{
+        name: 'id',
+        description: 'player id/name',
+        descriptionLocalizations: {
+          'zh-CN': '玩家 id/昵称'
+        },
+        type: ApplicationCommandOptionType.String,
+        required: false
+      }]
+    }, {
+      name: 'bind',
+      description: 'bind your discord account with musedash.moe',
+      descriptionLocalizations: {
+        'zh-CN': '绑定你的 MuseDash 账号'
+      },
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [{
+        name: 'id',
+        description: 'player id',
+        descriptionLocalizations: {
+          'zh-CN': '玩家 id'
+        },
+        type: ApplicationCommandOptionType.String,
+      }]
+    }
+    ]
+  })
+})
+
 client.on('messageCreate', async message => {
   const { content, author: { id } } = message
-  const send = async string => {
-    const reply = await message.reply(`\n${string}`)
-  }
+  const send = string => message.reply(string)
   if (content.startsWith('!moe')) {
     const [menu, ...items] = content.replace('!moe', '').split(' ').filter(Boolean)
     if (!menu || menu === 'help') {
@@ -195,6 +249,30 @@ client.on('messageCreate', async message => {
     }
     if (menu === 'bind') {
       send(await bindCommand(items[0], id))
+    }
+  }
+})
+
+client.on('interactionCreate', async interaction => {
+  if (interaction.isChatInputCommand()) {
+    const { commandName, options, user: { id } } = interaction
+    await interaction.deferReply()
+    const send = async string => interaction.editReply(string)
+    if (commandName === 'moe') {
+      switch (options.getSubcommand()) {
+        case 'search':
+          const query = options.getString('name')
+          send(await searchCommand(query))
+          break
+        case 'player':
+          const playerId = options.getString('id')
+          send(await playerCommand(playerId ? [playerId] : [], id))
+          break
+        case 'bind':
+          const bindId = options.getString('id')
+          send(await bindCommand(bindId, id))
+          break
+      }
     }
   }
 })
